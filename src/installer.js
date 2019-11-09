@@ -40,30 +40,6 @@ class CopyOnWriteInstaller {
         this.installFiles(this.root.requiredFiles)
     }
 
-    isValid() {
-        return evaluateDependencies(
-            this.root.dependencies,
-            this.flags,
-            this.gameVersion,
-            this.fileDependencyCallback)
-    }
-
-    page() {
-        if (this.pageIndex == -1)
-            return undefined
-        return this.root.pages[this.pageIndex]
-    }
-
-    previous() {
-        if (this.previousInstaller === undefined)
-            return this
-        return this.previousInstaller
-    }
-
-    files() {
-        return this.fileMap
-    }
-
     next(selectedOptions = []) {
         const page = this.root.pages[this.pageIndex + 1]
         const flags = Object.assign({}, this.flags)
@@ -178,7 +154,11 @@ class Installer {
      * @returns {boolean} True if the fomod module passed the dependency test.
      */
     isValid() {
-        return this.installer.isValid()
+        return evaluateDependencies(
+            this.installer.root.dependencies,
+            this.installer.flags,
+            this.installer.gameVersion,
+            this.installer.fileDependencyCallback)
     }
 
     /**
@@ -187,8 +167,9 @@ class Installer {
      * @returns {Page} The current page of the installer.
      */
     previous() {
-        this.installer = this.installer.previous()
-        return this.installer.page()
+        if(this.installer.previousInstaller !== undefined)
+            this.installer = this.installer.previousInstaller
+        return this.installer.root.pages[this.installer.pageIndex]
     }
 
     /**
@@ -196,7 +177,7 @@ class Installer {
      * @returns {{}} A map of file destinations and sources.
      */
     files() {
-        return this.installer.files()
+        return this.installer.fileMap
     }
 
     /**
@@ -207,7 +188,7 @@ class Installer {
      */
     next(selectedOptions = []) {
         this.installer = this.installer.next(selectedOptions)
-        return this.installer.page()
+        return this.installer.root.pages[this.installer.pageIndex]
     }
 }
 

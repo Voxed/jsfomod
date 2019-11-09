@@ -9,6 +9,7 @@ describe('Installer', function() {
                 let page = installer.next()
                 page = installer.next([page.groups[0].options[1]])
                 page = installer.previous()
+                a = []
             })
         })
     })

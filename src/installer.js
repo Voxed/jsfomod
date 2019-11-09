@@ -113,7 +113,7 @@ class Installer {
      * file dependency callback, should return true if the dependency is met.
      */
     constructor(root, path, flags = {}, gameVersion = undefined, fileDependencyCallback = dep => true) {
-        this.installer = new CopyOnWriteInstaller(root, path, {}, gameVersion, fileDependencyCallback)
+        this.installer = new CopyOnWriteInstaller(root, path, flags, gameVersion, fileDependencyCallback)
         this.installer.installFiles(this.installer.root.requiredFiles)
     }
 

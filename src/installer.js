@@ -2,7 +2,10 @@ const { Dependencies, Dependency, Folder, File } = require('./types')
 const fs = require('fs')
 const { walk, correctPath } = require('./helper')
 
-function evaluateDependencies(deps, flags, gameVersion, fileDependencyCallback) {
+function evaluateDependencies(deps, installer) {
+    const flags = installer.flags
+    const gameVersion = installer.gameVersion
+    const fileDependencyCallback = installer.fileDependencyCallback
     if (deps === undefined)
         return true
     if (deps.constructor === Dependencies) {
@@ -21,16 +24,20 @@ function evaluateDependencies(deps, flags, gameVersion, fileDependencyCallback) 
 }
 
 class CopyOnWriteInstaller {
-    constructor(root, path, flags, gameVersion, fileDependencyCallback) {
+    constructor(root, path, flags, gameVersion, fileDependencyCallback, pageIndex = -1, previousInstaller, fileMap = {}, filePriorities = {}) {
         this.root = root
-        this.flags = flags
+        this.flags = Object.assign({}, flags)
         this.gameVersion = gameVersion
         this.path = path
-        this.pageIndex = -1
+        this.pageIndex = pageIndex
         this.fileDependencyCallback = fileDependencyCallback
-        this.fileMap = {}
-        this.filePriorities = {}
-        this.installFiles(root.requiredFiles)
+        this.fileMap = Object.assign({}, fileMap)
+        this.filePriorities = Object.assign({}, filePriorities)
+        this.previousInstaller = previousInstaller
+    }
+
+    installRequired() {
+        this.installFiles(this.root.requiredFiles)
     }
 
     isValid() {
@@ -42,13 +49,13 @@ class CopyOnWriteInstaller {
     }
 
     page() {
-        if(this.pageIndex == -1)
+        if (this.pageIndex == -1)
             return undefined
         return this.root.pages[this.pageIndex]
     }
 
     previous() {
-        if(this.previousInstaller === undefined)
+        if (this.previousInstaller === undefined)
             return this
         return this.previousInstaller
     }
@@ -64,30 +71,29 @@ class CopyOnWriteInstaller {
             if (o.flags !== undefined)
                 for (const f in o.flags)
                     flags[f] = o.flags[f]
-            if (o.files !== undefined)
-                this.installFiles(o.files)
         })
-        const installer = new CopyOnWriteInstaller(this.root, this.path, flags, this.gameVersion)
-        installer.pageIndex = this.pageIndex + 1
-        installer.previousInstaller = this
-        installer.fileMap = Object.assign({}, this.fileMap)
-        installer.filePriorities = Object.assign({}, this.filePriorities)
+        const installer = new CopyOnWriteInstaller(
+            this.root,
+            this.path,
+            flags,
+            this.gameVersion,
+            this.fileDependencyCallback,
+            this.pageIndex + 1,
+            this,
+            this.fileMap,
+            this.filePriorities)
+        selectedOptions.forEach(o => {
+            if (o.files !== undefined)
+                installer.installFiles(o.files)
+        })
         if (page !== undefined)
-            if (!evaluateDependencies(
-                page.dependencies,
-                installer.flags,
-                installer.gameVersion,
-                installer.fileDependencyCallback))
+            if (!evaluateDependencies(page.dependencies, installer))
                 return installer.next([])
-        else
-            this.root.patterns.forEach(pattern => {
-                if (evaluateDependencies(
-                    pattern.dependencies,
-                    installer.flags,
-                    installer.gameVersion,
-                    installer.fileDependencyCallback))
-                    installer.installFiles(pattern.files)
-            })
+            else if (this.root.patterns !== undefined)
+                this.root.patterns.forEach(pattern => {
+                    if (evaluateDependencies(pattern.dependencies, installer))
+                        installer.installFiles(pattern.files)
+                })
         return installer
     }
 
@@ -141,6 +147,7 @@ class Installer {
      */
     constructor(root, path, flags = {}, gameVersion = undefined, fileDependencyCallback = dep => true) {
         this.installer = new CopyOnWriteInstaller(root, path, {}, gameVersion, fileDependencyCallback)
+        this.installer.installRequired()
     }
 
     /**
@@ -181,7 +188,7 @@ class Installer {
      */
     previous() {
         this.installer = this.installer.previous()
-        return this.page()
+        return this.installer.page()
     }
 
     /**

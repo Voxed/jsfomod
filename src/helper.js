@@ -50,9 +50,7 @@ function correctPath(path, root) {
                             candidate = f
                     })
                 if (candidate === undefined)
-                    throw new Error(
-                        `No existing path candidate exists for: ${root}${path}`
-                    )
+                    return undefined
                 else
                     current = `${current}/${candidate}`
             }

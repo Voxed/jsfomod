@@ -9,7 +9,7 @@ function evaluateDependencies(deps, installer) {
     if (deps === undefined)
         return true
     if (deps.constructor === Dependencies) {
-        const passes = deps.dependencies.filter(d => evaluateDependencies(d, flags, gameVersion, fileDependencyCallback))
+        const passes = deps.dependencies.filter(d => evaluateDependencies(d, installer))
         if (deps.operator === 'Or')
             return passes.length > 0
         else

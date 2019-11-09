@@ -141,6 +141,14 @@ class Installer {
         return this.getPath() + '/' + this.installer.root.image
     }
 
+    hasNext() {
+        return this.installer.root.pages.length > this.installer.pageIndex + 1
+    }
+
+    hasPrevious() {
+        return this.installer.pageIndex > 0
+    }
+
     /**
      * @returns {boolean} True if the fomod module passed the dependency test.
      */

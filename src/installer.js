@@ -70,8 +70,8 @@ class CopyOnWriteInstaller {
         const installer = new CopyOnWriteInstaller(this.root, this.path, flags, this.gameVersion)
         installer.pageIndex = this.pageIndex + 1
         installer.previousInstaller = this
-        installer.fileMap = this.fileMap
-        installer.filePriorities = this.filePriorities
+        installer.fileMap = Object.assign({}, this.fileMap)
+        installer.filePriorities = Object.assign({}, this.filePriorities)
         if (page !== undefined)
             if (!evaluateDependencies(
                 page.dependencies,

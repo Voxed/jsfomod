@@ -15,6 +15,7 @@ function copyAttributes(source, dest, attrs, mapFunction = a => a) {
         attrs.forEach(a => dest[a] = mapFunction(source.$[a]))
 }
 
+// Parser instructions for each node-type
 nodeParsers = {
     config: function (module, ctx) {
         const root = new Root()

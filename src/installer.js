@@ -138,7 +138,7 @@ class Installer {
      * @returns {string} The path of the image. (undefined if there is no image)
      */
     getImage() {
-        return this.installer.root.image
+        return this.getPath() + '/' + this.installer.root.image
     }
 
     /**

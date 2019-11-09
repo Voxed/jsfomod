@@ -68,7 +68,7 @@ class CopyOnWriteInstaller {
         if (files != undefined)
             files.forEach(f => {
                 if (f.constructor === Folder) {
-                    files = walk(f.source, this.path).map(p => {
+                    files = walk('', this.path + "/" + f.source).map(p => {
                         const nf = new File()
                         nf.source = correctPath(f.source + '/' + p)
                         nf.destination = correctPath(f.destination + '/' + p)
